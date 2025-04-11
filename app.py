@@ -1,10 +1,10 @@
+from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
+import os
 import uuid
-from flask import Flask, render_template, request, jsonify, send_from_directory
 import mathai
 from base import *
 import parser
 import time
-import os
 
 app = Flask(__name__)
 
@@ -89,8 +89,6 @@ def get_logs():
 def index():
     return render_template('index.html')
 
-import uuid
-
 database_data = {
     'Class 12': {
         'Mathematics': {
@@ -98,19 +96,19 @@ database_data = {
                 'Exercise 7.1': {
                     'Question 1': {
                         'url': '/integration/?equation=sin(2*x)',
-                        'image': '/images/question1.png'
+                        'image': 'https://i.ibb.co/wFfSrttq/question1.png'
                     },
                     'Question 2': {
                         'url': '/integration/?equation=cos(3*x)',
-                        'image': '/images/question2.png'
+                        'image': 'https://i.ibb.co/r2z7hy93/question2.png'
                     },
                     'Question 3': {
                         'url': '/integration/?equation=e^(2*x)',
-                        'image': '/images/question3.png'
+                        'image': 'https://i.ibb.co/xSYd7t2z/question3.png'
                     },
                     'Question 4': {
                         'url': '/integration/?equation=%28a%2Ax%20%2B%20b%29%5E2',
-                        'image': '/images/question4.png'
+                        'image': 'https://i.ibb.co/YFJyfr5V/question4.png'
                     }
                 }
             }
@@ -118,25 +116,42 @@ database_data = {
     }
 }
 
-def generate_accordion(data):
-    """Generates accordion-style collapsible sections from the data."""
-    html = '<div class="accordion">'
-    for top_level, categories in data.items():
-        html += f'<div class="accordion-item"><button class="accordion-button">{top_level}</button><div class="panel">'
-        for category, chapters in categories.items():
-            html += f'<div class="accordion-item"><button class="accordion-button">{category}</button><div class="panel">'
-            for chapter, exercises in chapters.items():
-                html += f'<div class="accordion-item"><button class="accordion-button">{chapter}</button><div class="panel">'
-                for exercise, questions in exercises.items():
-                    html += f'<div class="accordion-item"><button class="accordion-button">{exercise}</button><div class="panel">'
-                    for question, details in questions.items():
-                        html += f'<h4>{question}</h4><a href="#" onclick="showContent(\'{details["url"]}\', \'{details["image"]}\')">View Solution</a>'
-                    html += '</div></div>'
-                html += '</div></div>'
-            html += '</div></div>'
-        html += '</div></div>'
-    html += '</div>'
+def generate_accordion(data, level=0):
+    """Generates accordion-style collapsible sections from the data recursively."""
+    html = ''
+    if level == 0:
+        html += '<div class="accordion">'
+
+    for key, value in data.items():
+        if isinstance(value, dict) and 'url' not in value:
+            # This is a nested section like a chapter or subject
+            html += f'''
+                <div class="accordion-item">
+                    <button class="accordion-button">{"  " * level + key}</button>
+                    <div class="panel">
+                        {generate_accordion(value, level + 1)}
+                    </div>
+                </div>
+            '''
+        else:
+            # This is a leaf node with actual question data
+            url = value.get('url', '')
+            image = value.get('image', '')
+            html += f'''
+                <div class="question-item">
+                    <h4>{key}</h4>
+                    <a href="#" onclick="showContent('{url}', '{image}'); return false;">View Solution</a><br/>
+                </div>
+            '''
+
+    if level == 0:
+        html += '</div>'
     return html
+
+
+@app.route('/')
+def home():
+    return redirect(url_for('ncert_index'))
 
 @app.route('/ncert/')
 def ncert_index():
@@ -150,9 +165,9 @@ def ncert_index():
     </head>
     <body>
         {accordion}
-        <div class="content-area">
-            <img id="contentImage">
-            <iframe id="contentIframe"></iframe>
+        <div class="content-area" style="margin-top: 30px;">
+            <img id="contentImage" src="" style="max-width: 100%; display: none; margin-bottom: 15px;" />
+            <iframe id="contentIframe" src="" style="width: 100%; height: 500px; border: 1px solid #ccc; display: none;"></iframe>
         </div>
     </body>
     </html>
