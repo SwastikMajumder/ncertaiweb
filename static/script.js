@@ -61,21 +61,67 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error fetching integration result:', error);
         });
+
+        // Start log fetching and display inside the button click
+        storedLogs = []; //reset the stored logs.
+        logCollectionActive = true;
+        clearTimeout(timeoutID); // Clear any existing timeout
+        timeoutID = setTimeout(function logFetcher(){ // create a self contained function.
+            if (!logCollectionActive) return;
+
+            fetch('/integration/get_logs')
+                .then(response => response.json())
+                .then(data => {
+                    storedLogs = storedLogs.concat(data.logs); // Add new logs
+                    logsOutput.innerHTML = storedLogs.filter(log => !["PAUSE", "END_LOG_COLLECTION"].includes(log)).join('<br>'); // Filter out PAUSE and END_LOG_COLLECTION
+
+                    if (data.logs.some(log => log.includes("END_LOG_COLLECTION"))) {
+                        logCollectionActive = false;
+                        console.log("Logs stopped.");
+                        clearTimeout(timeoutID); // Stop further timeouts
+                    } else {
+                        storedLogs.push("PAUSE"); // Add pause marker
+                        timeoutID = setTimeout(logFetcher, 1000); // Schedule next fetch
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+
+        },1000); // start the log fetching.
     });
 
-    // Polling for logs
+    // Log polling
+    let storedLogs = [];
+    let logCollectionActive = true;
+    let timeoutID = null; // Store the timeout ID
+    let logFetchRunning = false; // Add a flag to prevent multiple fetch loops
+
+    //log fetching function.
     function fetchLogs() {
+        if (!logCollectionActive || logFetchRunning) return; // Prevent multiple fetch loops
+        logFetchRunning = true; // Set flag to true
+
         fetch('/integration/get_logs')
-        .then(response => response.json())
-        .then(data => {
-            const logsOutput = document.getElementById('logs-output');
-            logsOutput.innerHTML = data.logs.join('<br>'); // Display logs
-        })
-        .catch(error => {
-            console.error('Error fetching logs:', error);
-        });
+            .then(response => response.json())
+            .then(data => {
+                const logsOutput = document.getElementById('logs-output');
+                storedLogs = storedLogs.concat(data.logs); // Add new logs
+                logsOutput.innerHTML = storedLogs.filter(log => !["PAUSE", "END_LOG_COLLECTION"].includes(log)).join('<br>'); // Filter out PAUSE and END_LOG_COLLECTION
+
+                if (data.logs.some(log => log.includes("END_LOG_COLLECTION"))) {
+                    logCollectionActive = false;
+                    console.log("Logs stopped.");
+                    clearTimeout(timeoutID); // Stop further timeouts
+                } else {
+                    storedLogs.push("PAUSE"); // Add pause marker
+                    timeoutID = setTimeout(fetchLogs, 1000); // Schedule next fetch
+                }
+            })
+            .catch(error => console.error('Error:', error))
+            .finally(() => {
+                logFetchRunning = false; // Reset flag after fetch completes
+            });
     }
 
-    // Fetch logs every 1 second (adjust as needed)
-    setInterval(fetchLogs, 1000);
+    // Start log polling
+    timeoutID = setTimeout(fetchLogs, 1000); // Start the first fetch
 });

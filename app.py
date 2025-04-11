@@ -10,9 +10,12 @@ app = Flask(__name__)
 
 log_messages = []
 
-def send_log(message):
-    log_messages.append(message)
-
+@app.route('/integration/get_logs')
+def get_logs():
+    global log_messages
+    tmp = log_messages
+    log_messages = []
+    return jsonify({"logs": tmp})
 
 def solveneg(eq):
     if eq.name == "f_neg" and "f_neg" not in str_form(eq.children[0]) and "f_div" not in str_form(eq.children[0]):
@@ -58,6 +61,7 @@ def integrate():
         result = mathai.integratex(parser.take_input(equation), 3)
         result = mathai.solve(mathai.expand2(result))
         mathai.plog([mathai.tab, "the solution is ", result])
+        send_log("END_LOG_COLLECTION")
         tree = create_math_tree(result)
         return jsonify({"tree": tree})
     except Exception as e:
@@ -74,6 +78,7 @@ def integrate_url(equation):
         result = mathai.integratex(parser.take_input(equation), 3)
         result = mathai.solve(mathai.expand2(result))
         mathai.plog([mathai.tab, "the solution is ", result])
+        send_log("END_LOG_COLLECTION")
         tree = create_math_tree(result)
         return jsonify({"tree": tree})
     except Exception as e:
@@ -81,13 +86,15 @@ def integrate_url(equation):
         print(f"Error integrating: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/integration/get_logs')
-def get_logs():
-    return jsonify({"logs": log_messages})
+def send_log(message):
+    log_messages.append(message)
 
 @app.route('/integration/')
 def index():
     return render_template('index.html')
+@app.route('/images/<filename>')
+def get_image(filename):
+    return send_from_directory(os.path.join(app.root_path, 'static', 'images'), filename)
 
 database_data = {
     'Class 12': {
@@ -96,19 +103,19 @@ database_data = {
                 'Exercise 7.1': {
                     'Question 1': {
                         'url': '/integration/?equation=sin(2*x)',
-                        'image': 'https://i.ibb.co/wFfSrttq/question1.png'
+                        'image': '/images/question1.png'
                     },
                     'Question 2': {
                         'url': '/integration/?equation=cos(3*x)',
-                        'image': 'https://i.ibb.co/r2z7hy93/question2.png'
+                        'image': '/images/question2.png'
                     },
                     'Question 3': {
                         'url': '/integration/?equation=e^(2*x)',
-                        'image': 'https://i.ibb.co/xSYd7t2z/question3.png'
+                        'image': '/images/question3.png'
                     },
                     'Question 4': {
                         'url': '/integration/?equation=%28a%2Ax%20%2B%20b%29%5E2',
-                        'image': 'https://i.ibb.co/YFJyfr5V/question4.png'
+                        'image': '/images/question4.png'
                     }
                 }
             }
