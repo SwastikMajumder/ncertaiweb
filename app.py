@@ -103,19 +103,19 @@ database_data = {
                 'Exercise 7.1': {
                     'Question 1': {
                         'url': '/integration/?equation=sin(2*x)',
-                        'image': '/images/question1.png'
+                        'image': '/images/question1.PNG'
                     },
                     'Question 2': {
                         'url': '/integration/?equation=cos(3*x)',
-                        'image': '/images/question2.png'
+                        'image': '/images/question2.PNG'
                     },
                     'Question 3': {
                         'url': '/integration/?equation=e^(2*x)',
-                        'image': '/images/question3.png'
+                        'image': '/images/question3.PNG'
                     },
                     'Question 4': {
                         'url': '/integration/?equation=%28a%2Ax%20%2B%20b%29%5E2',
-                        'image': '/images/question4.png'
+                        'image': '/images/question4.PNG'
                     }
                 }
             }
