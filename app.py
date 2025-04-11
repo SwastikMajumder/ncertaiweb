@@ -1,97 +1,107 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
+from flask import Flask, Response, request, url_for, send_from_directory, redirect
 import os
-import uuid
-import mathai
-from base import *
-import parser
-import time
+import mathai  # Your module for integration
+import json
+import urllib.parse
 
 app = Flask(__name__)
 
-log_messages = []
+@app.route('/stream')
+def stream():
+    equation = request.args.get('equation', '')
+    equation = urllib.parse.unquote(equation)
 
-@app.route('/integration/get_logs')
-def get_logs():
-    global log_messages
-    tmp = log_messages
-    log_messages = []
-    return jsonify({"logs": tmp})
+    def event_stream():
+        def sse_log(message):
+            message_obj = {
+                "type": "logging",
+                "content": message
+            }
+            yield f"data: {json.dumps(message_obj)}\n\n"
 
-def solveneg(eq):
-    if eq.name == "f_neg" and "f_neg" not in str_form(eq.children[0]) and "f_div" not in str_form(eq.children[0]):
-        return mathai.solve(eq.children[0]).fx("neg")
-    return TreeNode(eq.name, [solveneg(child) for child in eq.children])
+        # Call your integration function
+        yield from mathai.integrate_fx(equation, sse_log)
 
-def create_math_tree(eqstr):
-    try:
-        eq = eqstr
-        eq = mathai.powermerge(eq)
-        eq = conv(eq)
-        eq = mathai.simplify(eq)
-        alpha = ["x", "y", "z"]+[chr(x+ord("a")) for x in range(0,23)]
-        eq2 = str_form(eq)
-        for i in range(26):
-            if "v_"+str(i) in eq2:
-                eq = replace(eq, tree_form("v_"+str(i)), tree_form("v_"+alpha[i]))
-        return eq.to_dict()
-    except Exception as e:
-        print(f"Error creating math tree: {e}")
-        return {"error": str(e)}
+    return Response(event_stream(), mimetype="text/event-stream")
 
-def conv(eq):
-    if eq.name in ["f_mul", "f_pow"]:
-        lst = mathai.factorgen(eq)
-        deno = [item.children[0] for item in lst if item.name == "f_pow" and item.children[1] == tree_form("d_-1")]
-        if deno != []:
-            num = [item for item in lst if item.name != "f_pow" or item.children[1] != tree_form("d_-1")]
-            if num == []:
-                num = [tree_form("d_1")]
-            return TreeNode("f_div", [mathai.solve(mathai.product(num)), mathai.solve(mathai.product(deno))])
-    return TreeNode(eq.name, [conv(child) for child in eq.children])
-
-@app.route('/integration/integrate', methods=['POST'])
-def integrate():
-    global log_messages
-    data = request.get_json()
-    equation = data.get('expression')
-    
-    try:
-        log_messages = []
-        mathai.fxlog = send_log
-        result = mathai.integratex(parser.take_input(equation), 3)
-        result = mathai.solve(mathai.expand2(result))
-        mathai.plog([mathai.tab, "the solution is ", result])
-        send_log("END_LOG_COLLECTION")
-        tree = create_math_tree(result)
-        return jsonify({"tree": tree})
-    except Exception as e:
-        send_log(f"Error integrating: {e}")
-        print(f"Error integrating: {e}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/integration/integrate_url/<equation>')
-def integrate_url(equation):
-    global log_messages
-    try:
-        log_messages = []
-        mathai.fxlog = send_log
-        result = mathai.integratex(parser.take_input(equation), 3)
-        result = mathai.solve(mathai.expand2(result))
-        mathai.plog([mathai.tab, "the solution is ", result])
-        send_log("END_LOG_COLLECTION")
-        tree = create_math_tree(result)
-        return jsonify({"tree": tree})
-    except Exception as e:
-        send_log(f"Error integrating: {e}")
-        print(f"Error integrating: {e}")
-        return jsonify({"error": str(e)}), 500
-
-def send_log(message):
-    log_messages.append(message)
 
 @app.route('/integration/')
 def index():
-    return render_template('index.html')
+    equation = request.args.get('equation', '')
+    decoded_equation = urllib.parse.unquote(equation)
+
+    return f"""
+    <html>
+    <head>
+        <title>Integration Solver</title>
+        <link rel="stylesheet" href="{url_for('static', filename='renderMath.css')}">
+    </head>
+    <body>
+        <!-- Input and Button -->
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="equation-input" style="padding: 5px; width: 600px;" value="{decoded_equation}">
+            <button id="submit-button" style="padding: 5px;">Integrate</button>
+        </div>
+
+        <!-- Math Tree Render Area -->
+        <div id="math-tree-output" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 20px;">
+            <div id="tree-area" class="math-container"></div>
+        </div>
+
+        <!-- Log Output Area -->
+        <div id="log-output" style="border: 1px solid #aaa; padding: 10px;">
+            <div id="output"></div>
+        </div>
+
+        <script src="{url_for('static', filename='renderMath.js')}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                const equation = "{decoded_equation}";
+                const outputDiv = document.getElementById('output');
+                const treeDiv = document.getElementById('tree-area');
+                const submitButton = document.getElementById('submit-button');
+                const equationInput = document.getElementById('equation-input');
+
+                submitButton.addEventListener('click', function() {{
+                    
+                    const url = '/integration/?equation=' + encodeURIComponent(equationInput.value);
+                    if (url) {{
+                        window.location.href = url;
+                    }}
+                }});
+
+                if (equation) {{
+                    const streamUrl = '/stream?equation=' + encodeURIComponent(equation);
+                    const eventSource = new EventSource(streamUrl);
+
+                    eventSource.onmessage = function(event) {{
+                        let data;
+                        try {{
+                            data = JSON.parse(event.data);
+                        }} catch (e) {{
+                            console.error('Parse error:', e);
+                            return;
+                        }}
+
+                        if (data.type === 'math_tree') {{
+                            treeDiv.innerHTML = '';
+                            renderMathTree(data.content, treeDiv);
+                        }} else {{
+                            outputDiv.innerHTML += '<p>' + data.content + '</p>';
+                        }}
+                    }};
+
+                    eventSource.onerror = function(err) {{
+                        console.error('Stream error:', err);
+                        eventSource.close();
+                    }};
+                }}
+            }});
+        </script>
+    </body>
+    </html>
+    """
+
 @app.route('/images/<filename>')
 def get_image(filename):
     return send_from_directory(os.path.join(app.root_path, 'static', 'images'), filename)
@@ -154,7 +164,6 @@ def generate_accordion(data, level=0):
     if level == 0:
         html += '</div>'
     return html
-
 
 @app.route('/')
 def home():

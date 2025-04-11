@@ -2,6 +2,7 @@ import copy
 from lark import Lark, Tree
 from base import *
 import re
+
 def extract_nested_lists(s, n=0):
     stack = []
     results = []
@@ -63,6 +64,7 @@ VARIABLE: "x" | "y" | "z" | "A" | "B" | "C" | "D" | "a" | "b" | "c" | "d" | "f" 
 %import common.WS_INLINE
 %ignore WS_INLINE
 """
+
 def take_input(equation, funclist=None):
   global grammar
   equation = copy.copy(equation.replace(" ", ""))
