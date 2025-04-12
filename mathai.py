@@ -57,7 +57,7 @@ def conv(eq):
             num = [item for item in lst if item.name != "f_pow" or item.children[1] != tree_form("d_-1")]
             if num == []:
                 num = [tree_form("d_1")]
-            return TreeNode("f_div", [solve(product(num)), solve(product(deno))])
+            return TreeNode("f_div", [conv(solve(product(num))), conv(solve(product(deno)))])
     return TreeNode(eq.name, [conv(child) for child in eq.children])
 
 def compute(eq):

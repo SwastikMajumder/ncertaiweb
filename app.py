@@ -126,6 +126,74 @@ database_data = {
                     'Question 4': {
                         'url': '/integration/?equation=%28a%2Ax%20%2B%20b%29%5E2',
                         'image': '/images/question4.PNG'
+                    },
+                    'Question 5': {
+                        'url': '/integration/?equation=sin%282*x%29-4*e%5E%283*x%29',
+                        'image': '/images/question5.PNG'
+                    },
+                    'Question 6': {
+                        'url': '/integration/?equation=4*e%5E%283*x%29%2B1',
+                        'image': '/images/question6.PNG'
+                    },
+                    'Question 7': {
+                        'url': '/integration/?equation=x%5E2*(1-1%2Fx%5E2)',
+                        'image': '/images/question7.PNG'
+                    },
+                    'Question 8': {
+                        'url': '/integration/?equation=a*x%5E2%2Bb*x%2Bc',
+                        'image': '/images/question8.PNG'
+                    },
+                    'Question 9': {
+                        'url': '/integration/?equation=2*x%5E2%2Be%5Ex',
+                        'image': '/images/question9.PNG'
+                    },
+                    'Question 10': {
+                        'url': '/integration/?equation=%28x%5E%281%2F2%29-x%5E%28-1%2F2%29%29%5E2',
+                        'image': '/images/question10.PNG'
+                    },
+                    'Question 11': {
+                        'url': '/integration/?equation=%28x%5E3%2B5*x%5E2-4%29%2Fx%5E2',
+                        'image': '/images/question11.PNG'
+                    },
+                    'Question 12': {
+                        'url': '/integration/?equation=%28x%5E3%2B3*x%2B4%29%2F%28x%5E%281%2F2%29%29',
+                        'image': '/images/question12.PNG'
+                    },
+                    'Question 13': {
+                        'url': '/integration/?equation=%28x%5E3-x%5E2%2Bx-1%29%2F%28x-1%29',
+                        'image': '/images/question13.PNG'
+                    },
+                    'Question 14': {
+                        'url': '/integration/?equation=%281-x%29*x%5E%281%2F2%29',
+                        'image': '/images/question14.PNG'
+                    },
+                    'Question 15': {
+                        'url': '/integration/?equation=x%5E%281%2F2%29%20*%20%283*x%5E2%20%2B%202*x%20%2B%203%29',
+                        'image': '/images/question15.PNG'
+                    },
+                    'Question 16': {
+                        'url': '/integration/?equation=2*x%20-%203*cos%28x%29%20%2B%20e%5Ex',
+                        'image': '/images/question16.PNG'
+                    },
+                    'Question 17': {
+                        'url': '/integration/?equation=2*x%5E2-3*sin%28x%29%2B5*x%5E%281%2F2%29',
+                        'image': '/images/question17.PNG'
+                    },
+                    'Question 18': {
+                        'url': '/integration/?equation=sec%28x%29%28sec%28x%29%2Btan%28x%29%29',
+                        'image': '/images/question18.PNG'
+                    },
+                    'Question 19': {
+                        'url': '/integration/?equation=sec%28x%29%5E2%2Fcosec%28x%29%5E2',
+                        'image': '/images/question19.PNG'
+                    },
+                    'Question 20': {
+                        'url': '/integration/?equation=%282-3*sin%28x%29%29%2F%28cos%28x%29%5E2%29',
+                        'image': '/images/question20.PNG'
+                    },
+                    'Question 21': {
+                        'url': '/integration/?equation=x%5E%281%2F2%29%20%2B%201%2Fx%5E%281%2F2%29',
+                        'image': '/images/question21.PNG'
                     }
                 }
             }

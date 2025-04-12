@@ -6,31 +6,6 @@ class TreeNode {
         this.children = children;
     }
 }
-function treeForm(tabbedStrings) {
-    let lines = tabbedStrings.split("\n");
-    let root = new TreeNode("Root");
-    let currentLevelNodes = {0: root};
-    let stack = [root];
-
-    for (let line of lines) {
-        let level = line.match(/^\s*/)[0].length;  // Count leading spaces
-        let nodeName = line.trim();
-        let node = new TreeNode(nodeName);
-
-        // Pop from stack until we reach the correct level
-        while (stack.length > level + 1) {
-            stack.pop();
-        }
-
-        let parentNode = stack[stack.length - 1];
-        parentNode.children.push(node);
-
-        currentLevelNodes[level] = node;
-        stack.push(node);
-    }
-
-    return root.children[0];  // Return the first child of the root
-}
 
 function renderMathTree(node, parentElement) {
     console.log("Rendering node:", node);
